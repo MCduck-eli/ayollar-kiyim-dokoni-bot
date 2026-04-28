@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "verbatimModuleSyntax": false,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "rootDir": "./src",
+        "outDir": "./dist"
+    }
+}

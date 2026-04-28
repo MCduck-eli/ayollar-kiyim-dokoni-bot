@@ -31,12 +31,55 @@ const mainMenu = Markup.keyboard([
     ["📍 Filiallar", "📞 Aloqa"],
     ["🕒 Ish vaqti", "🏷 Chegirmalar"],
 ]).resize();
-
+const catalogStylesMenu = Markup.keyboard([
+    ...Object.values(ClothingStyle).reduce((acc: string[][], curr, i) => {
+        if (i % 2 === 0) acc.push([curr]);
+        else acc[acc.length - 1].push(curr);
+        return acc;
+    }, []),
+    ["⬅️ Ortga"],
+]).resize();
 bot.start((ctx) => {
     ctx.reply(
         `Assalomu alaykum ${ctx.from.first_name}! 👋\nOnline do'konimizga xush kelibsiz.`,
         mainMenu,
     );
+});
+bot.hears("⬅️ Ortga", (ctx) => {
+    ctx.reply("Asosiy menyuga qaytdingiz:", mainMenu);
+});
+bot.hears("🛍 Katalog", (ctx) => {
+    ctx.reply("Kiyim uslubini tanlang:", catalogStylesMenu);
+});
+Object.values(ClothingStyle).forEach((style) => {
+    bot.hears(style, async (ctx) => {
+        const products = await Product.find({ style: style });
+
+        if (products.length === 0) {
+            return ctx.reply("Hozircha bu bo'limda mahsulotlar yo'q.");
+        }
+
+        ctx.reply(`${style} uslubidagi mahsulotlar yuklanmoqda...`);
+
+        for (const prod of products) {
+            const caption = `<b>👗 ${prod.name}</b>\n\n💰 Narxi: ${prod.price.toLocaleString()} so'm\n📏 O'lchamlar: ${prod.sizes.join(", ")}`;
+
+            const sizeButtons = prod.sizes.map((size) =>
+                Markup.button.callback(size, `buy_${prod._id}_${size}`),
+            );
+
+            const rows = [];
+            for (let i = 0; i < sizeButtons.length; i += 3) {
+                rows.push(sizeButtons.slice(i, i + 3));
+            }
+
+            await ctx.replyWithPhoto(prod.image, {
+                caption,
+                parse_mode: "HTML",
+                ...Markup.inlineKeyboard(rows),
+            });
+        }
+    });
 });
 bot.hears("🛒 Savatcha", async (ctx) => {
     const userId = ctx.from.id;
@@ -75,23 +118,23 @@ bot.action("checkout", async (ctx) => {
         "Buyurtmani rasmiylashtirish uchun telefon raqamingizni yuboring:",
         Markup.keyboard([
             [Markup.button.contactRequest("📱 Telefon raqamni yuborish")],
+            ["⬅️ Ortga"],
         ])
             .resize()
             .oneTime(),
     );
 });
-
 bot.on("contact", async (ctx) => {
     await ctx.reply(
-        "Rahmat! Endi mahsulot yetkazib berilishi kerak bo'lgan manzilni (lokatsiya) yuboring:",
+        "Rahmat! Endi manzilni (lokatsiya) yuboring:",
         Markup.keyboard([
             [Markup.button.locationRequest("📍 Lokatsiyani yuborish")],
+            ["⬅️ Ortga"],
         ])
             .resize()
             .oneTime(),
     );
 });
-
 bot.on("location", async (ctx) => {
     const userId = ctx.from.id;
     const location = ctx.message.location;
@@ -108,12 +151,7 @@ bot.on("location", async (ctx) => {
         }
     });
 
-    const adminMsg =
-        `📦 <b>YANGI BUYURTMA!</b>\n\n` +
-        `👤 Mijoz: ${ctx.from.first_name}\n` +
-        `🆔 ID: ${userId}\n` +
-        `📝 Mahsulotlar:\n${orderList}\n` +
-        `💰 Jami: <b>${total.toLocaleString()} so'm</b>`;
+    const adminMsg = `📦 <b>YANGI BUYURTMA!</b>\n\n👤 Mijoz: ${ctx.from.first_name}\n🆔 ID: ${userId}\n📝 Mahsulotlar:\n${orderList}\n💰 Jami: <b>${total.toLocaleString()} so'm</b>`;
 
     try {
         await bot.telegram.sendMessage(ADMIN_ID, adminMsg, {
@@ -130,7 +168,6 @@ bot.on("location", async (ctx) => {
             mainMenu,
         );
     } catch (e) {
-        console.error("Admin xabar yuborishda xato:", e);
         await ctx.reply("Xatolik yuz berdi, operator bilan bog'laning.");
     }
 });
@@ -154,42 +191,10 @@ bot.action(/buy_(.+)_(.+)/, async (ctx) => {
         await ctx.answerCbQuery("Xatolik! ❌");
     }
 });
-
 bot.action("clear_cart", async (ctx) => {
     await Cart.deleteMany({ userId: ctx.from!.id });
     await ctx.answerCbQuery("Savat tozalandi 🗑");
     await ctx.editMessageText("Savatchangiz bo'shatildi.");
-});
-bot.hears("🛍 Katalog", (ctx) => {
-    const styleButtons = Object.values(ClothingStyle).map((style) => [
-        Markup.button.callback(style, `style_${style}`),
-    ]);
-    ctx.reply("Kiyim uslubini tanlang:", Markup.inlineKeyboard(styleButtons));
-});
-
-bot.action(/style_(.+)/, async (ctx) => {
-    const selectedStyle = ctx.match[1];
-    await ctx.answerCbQuery();
-    const products = await Product.find({ style: selectedStyle });
-
-    if (products.length === 0)
-        return ctx.reply("Hozircha bu bo'limda mahsulotlar yo'q.");
-
-    for (const prod of products) {
-        const caption = `<b>👗 ${prod.name}</b>\n\n💰 Narxi: ${prod.price.toLocaleString()} so'm\n📏 O'lchamlar: ${prod.sizes.join(", ")}`;
-        const sizeButtons = prod.sizes.map((size) =>
-            Markup.button.callback(size, `buy_${prod._id}_${size}`),
-        );
-        const rows = [];
-        for (let i = 0; i < sizeButtons.length; i += 3)
-            rows.push(sizeButtons.slice(i, i + 3));
-
-        await ctx.replyWithPhoto(prod.image, {
-            caption,
-            parse_mode: "HTML",
-            ...Markup.inlineKeyboard(rows),
-        });
-    }
 });
 bot.hears("📍 Filiallar", (ctx) => {
     ctx.reply(
@@ -204,18 +209,14 @@ bot.hears("🕒 Ish vaqti", (ctx) => {
         { parse_mode: "HTML" },
     );
 });
-
 bot.hears("📞 Aloqa", (ctx) => {
     ctx.reply(
         "☎️ <b>Biz bilan bog'lanish:</b>\n\nAdmin: @sizning_admin_useringiz\nTelefon: +998 90 123 45 67",
         { parse_mode: "HTML" },
     );
 });
-
 bot.hears("🏷 Chegirmalar", (ctx) => {
-    ctx.reply(
-        "🎁 Hozirda barcha K-POP uslubidagi kiyimlarga 10% chegirma mavjud!",
-    );
+    ctx.reply("🎁 Hozirda barcha kiyimlarga mavsumiy chegirmalar mavjud!");
 });
 bot.catch((err: any, ctx) =>
     console.error(`Bot xatosi: ${ctx.updateType}`, err),

@@ -16,7 +16,7 @@ const seed = async () => {
                 style: ClothingStyle.KPOP,
                 price: 350000,
                 sizes: ["M", "L", "XL"],
-                image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=400&h=600&fit=crop",
+                image: "AgACAgIAAxkBAAIBM2nw6WMNi-iCRCAGhvuqnGCy4exWAAKyF2sbFE2JS0SGrQ9ziTIlAQADAgADeQADOwQ",
             },
             {
                 name: "Classic Silk Dress",

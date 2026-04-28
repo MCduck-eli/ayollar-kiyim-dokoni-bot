@@ -10,16 +10,13 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, { "Content-Type": "text/plain" });
     res.end("Bot is running safely!");
 });
-
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Port ${PORT} tinglanmoqda...`);
 });
 
 const ADMIN_ID = 123456789;
-
 if (!process.env.BOT_TOKEN) throw new Error("BOT_TOKEN topilmadi!");
-
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
 mongoose
@@ -51,6 +48,17 @@ bot.hears("⬅️ Ortga", (ctx) => {
 bot.hears("🛍 Katalog", (ctx) => {
     ctx.reply("Kiyim uslubini tanlang:", catalogStylesMenu);
 });
+bot.on("photo", (ctx) => {
+    const fileId = ctx.message.photo[ctx.message.photo.length - 1].file_id;
+    ctx.reply(`Siz yuborgan rasmning ID si:\n\n<code>${fileId}</code>`, {
+        parse_mode: "HTML",
+    });
+    console.log("📸 Yangi rasm ID:", fileId);
+});
+bot.catch((err: any, ctx) =>
+    console.error(`Bot xatosi: ${ctx.updateType}`, err),
+);
+bot.launch().then(() => console.log("🤖 Bot ishlayapti..."));
 Object.values(ClothingStyle).forEach((style) => {
     bot.hears(style, async (ctx) => {
         const products = await Product.find({ style: style });

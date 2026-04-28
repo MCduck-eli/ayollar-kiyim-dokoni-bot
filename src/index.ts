@@ -1,9 +1,20 @@
 import { Telegraf, Markup } from "telegraf";
 import mongoose from "mongoose";
 import "dotenv/config";
+import http from "http";
 import { ClothingStyle } from "./types/index.js";
 import { Product } from "./models/product.js";
 import { Cart } from "./models/cart.js";
+
+const server = http.createServer((req, res) => {
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    res.end("Bot is running safely!");
+});
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`Port ${PORT} tinglanmoqda...`);
+});
 
 const ADMIN_ID = 123456789;
 
@@ -15,7 +26,6 @@ mongoose
     .connect(process.env.MONGO_URI!)
     .then(() => console.log("🔥 MongoDB muvaffaqiyatli ulandi"))
     .catch((err) => console.error("❌ MongoDB xatosi:", err));
-
 const mainMenu = Markup.keyboard([
     ["🛍 Katalog", "🛒 Savatcha"],
     ["📍 Filiallar", "📞 Aloqa"],
@@ -39,11 +49,13 @@ bot.hears("🛒 Savatcha", async (ctx) => {
     let text = "<b>🛒 Sizning savatchangiz:</b>\n\n";
 
     items.forEach((item: any, index) => {
-        const subtotal = item.productId.price * item.quantity;
-        total += subtotal;
-        text += `${index + 1}. <b>${item.productId.name}</b>\n`;
-        text += `   📐 O'lcham: ${item.size} | 🔢 ${item.quantity} dona\n`;
-        text += `   💰 Narx: ${subtotal.toLocaleString()} so'm\n\n`;
+        if (item.productId) {
+            const subtotal = item.productId.price * item.quantity;
+            total += subtotal;
+            text += `${index + 1}. <b>${item.productId.name}</b>\n`;
+            text += `   📐 O'lcham: ${item.size} | 🔢 ${item.quantity} dona\n`;
+            text += `   💰 Narx: ${subtotal.toLocaleString()} so'm\n\n`;
+        }
     });
 
     text += `────────────────────\n`;
@@ -57,7 +69,6 @@ bot.hears("🛒 Savatcha", async (ctx) => {
         ]),
     });
 });
-
 bot.action("checkout", async (ctx) => {
     await ctx.answerCbQuery();
     await ctx.reply(
@@ -69,6 +80,7 @@ bot.action("checkout", async (ctx) => {
             .oneTime(),
     );
 });
+
 bot.on("contact", async (ctx) => {
     await ctx.reply(
         "Rahmat! Endi mahsulot yetkazib berilishi kerak bo'lgan manzilni (lokatsiya) yuboring:",
@@ -79,6 +91,7 @@ bot.on("contact", async (ctx) => {
             .oneTime(),
     );
 });
+
 bot.on("location", async (ctx) => {
     const userId = ctx.from.id;
     const location = ctx.message.location;
@@ -89,8 +102,10 @@ bot.on("location", async (ctx) => {
     let total = 0;
     let orderList = "";
     items.forEach((item: any, i) => {
-        total += item.productId.price * item.quantity;
-        orderList += `${i + 1}. ${item.productId.name} (${item.size}) - ${item.quantity} dona\n`;
+        if (item.productId) {
+            total += item.productId.price * item.quantity;
+            orderList += `${i + 1}. ${item.productId.name} (${item.size}) - ${item.quantity} dona\n`;
+        }
     });
 
     const adminMsg =
@@ -99,18 +114,25 @@ bot.on("location", async (ctx) => {
         `🆔 ID: ${userId}\n` +
         `📝 Mahsulotlar:\n${orderList}\n` +
         `💰 Jami: <b>${total.toLocaleString()} so'm</b>`;
-    await bot.telegram.sendMessage(ADMIN_ID, adminMsg, { parse_mode: "HTML" });
-    await bot.telegram.sendLocation(
-        ADMIN_ID,
-        location.latitude,
-        location.longitude,
-    );
-    await Cart.deleteMany({ userId });
 
-    await ctx.reply(
-        "Tabriklaymiz! Buyurtmangiz qabul qilindi. Tez orada operatorimiz bog'lanadi. ✅",
-        mainMenu,
-    );
+    try {
+        await bot.telegram.sendMessage(ADMIN_ID, adminMsg, {
+            parse_mode: "HTML",
+        });
+        await bot.telegram.sendLocation(
+            ADMIN_ID,
+            location.latitude,
+            location.longitude,
+        );
+        await Cart.deleteMany({ userId });
+        await ctx.reply(
+            "Tabriklaymiz! Buyurtmangiz qabul qilindi. ✅",
+            mainMenu,
+        );
+    } catch (e) {
+        console.error("Admin xabar yuborishda xato:", e);
+        await ctx.reply("Xatolik yuz berdi, operator bilan bog'laning.");
+    }
 });
 bot.action(/buy_(.+)_(.+)/, async (ctx) => {
     const productId = ctx.match[1];
@@ -138,7 +160,6 @@ bot.action("clear_cart", async (ctx) => {
     await ctx.answerCbQuery("Savat tozalandi 🗑");
     await ctx.editMessageText("Savatchangiz bo'shatildi.");
 });
-
 bot.hears("🛍 Katalog", (ctx) => {
     const styleButtons = Object.values(ClothingStyle).map((style) => [
         Markup.button.callback(style, `style_${style}`),
@@ -170,7 +191,6 @@ bot.action(/style_(.+)/, async (ctx) => {
         });
     }
 });
-
 bot.hears("📍 Filiallar", (ctx) => {
     ctx.reply(
         "🏠 <b>Bizning filiallarimiz:</b>\n\n1. Sirdaryo V., Guliston Shahar 1-mavze.\n2. Guliston sh., Bunyodkor ko'chasi.",
@@ -197,12 +217,9 @@ bot.hears("🏷 Chegirmalar", (ctx) => {
         "🎁 Hozirda barcha K-POP uslubidagi kiyimlarga 10% chegirma mavjud!",
     );
 });
-
 bot.catch((err: any, ctx) =>
     console.error(`Bot xatosi: ${ctx.updateType}`, err),
 );
-
 bot.launch().then(() => console.log("🤖 Bot ishlayapti..."));
-
 process.once("SIGINT", () => bot.stop("SIGINT"));
 process.once("SIGTERM", () => bot.stop("SIGTERM"));

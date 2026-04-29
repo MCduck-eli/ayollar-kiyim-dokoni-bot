@@ -10,12 +10,14 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, { "Content-Type": "text/plain" });
     res.end("Bot is running safely!");
 });
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
+
+const PORT = Number(process.env.PORT) || 3000;
+server.listen(PORT, "0.0.0.0", () => {
     console.log(`Port ${PORT} tinglanmoqda...`);
 });
 
-const ADMIN_ID = 123456789;
+const ADMIN_ID = Number(process.env.ADMIN_ID) || 123456789;
+
 if (!process.env.BOT_TOKEN) throw new Error("BOT_TOKEN topilmadi!");
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
@@ -23,11 +25,13 @@ mongoose
     .connect(process.env.MONGO_URI!)
     .then(() => console.log("🔥 MongoDB muvaffaqiyatli ulandi"))
     .catch((err) => console.error("❌ MongoDB xatosi:", err));
+
 const mainMenu = Markup.keyboard([
     ["🛍 Katalog", "🛒 Savatcha"],
     ["📍 Filiallar", "📞 Aloqa"],
     ["🕒 Ish vaqti", "🏷 Chegirmalar"],
 ]).resize();
+
 const catalogStylesMenu = Markup.keyboard([
     ...Object.values(ClothingStyle).reduce((acc: string[][], curr, i) => {
         if (i % 2 === 0) acc.push([curr]);
@@ -36,18 +40,22 @@ const catalogStylesMenu = Markup.keyboard([
     }, []),
     ["⬅️ Ortga"],
 ]).resize();
+
 bot.start((ctx) => {
     ctx.reply(
         `Assalomu alaykum ${ctx.from.first_name}! 👋\nOnline do'konimizga xush kelibsiz.`,
         mainMenu,
     );
 });
+
 bot.hears("⬅️ Ortga", (ctx) => {
     ctx.reply("Asosiy menyuga qaytdingiz:", mainMenu);
 });
+
 bot.hears("🛍 Katalog", (ctx) => {
     ctx.reply("Kiyim uslubini tanlang:", catalogStylesMenu);
 });
+
 bot.on("photo", (ctx) => {
     const fileId = ctx.message.photo[ctx.message.photo.length - 1].file_id;
     ctx.reply(`Siz yuborgan rasmning ID si:\n\n<code>${fileId}</code>`, {
@@ -55,10 +63,7 @@ bot.on("photo", (ctx) => {
     });
     console.log("📸 Yangi rasm ID:", fileId);
 });
-bot.catch((err: any, ctx) =>
-    console.error(`Bot xatosi: ${ctx.updateType}`, err),
-);
-bot.launch().then(() => console.log("🤖 Bot ishlayapti..."));
+
 Object.values(ClothingStyle).forEach((style) => {
     bot.hears(style, async (ctx) => {
         const products = await Product.find({ style: style });
@@ -89,6 +94,7 @@ Object.values(ClothingStyle).forEach((style) => {
         }
     });
 });
+
 bot.hears("🛒 Savatcha", async (ctx) => {
     const userId = ctx.from.id;
     const items = await Cart.find({ userId }).populate("productId");
@@ -120,6 +126,7 @@ bot.hears("🛒 Savatcha", async (ctx) => {
         ]),
     });
 });
+
 bot.action("checkout", async (ctx) => {
     await ctx.answerCbQuery();
     await ctx.reply(
@@ -132,6 +139,7 @@ bot.action("checkout", async (ctx) => {
             .oneTime(),
     );
 });
+
 bot.on("contact", async (ctx) => {
     await ctx.reply(
         "Rahmat! Endi manzilni (lokatsiya) yuboring:",
@@ -143,6 +151,7 @@ bot.on("contact", async (ctx) => {
             .oneTime(),
     );
 });
+
 bot.on("location", async (ctx) => {
     const userId = ctx.from.id;
     const location = ctx.message.location;
@@ -179,6 +188,7 @@ bot.on("location", async (ctx) => {
         await ctx.reply("Xatolik yuz berdi, operator bilan bog'laning.");
     }
 });
+
 bot.action(/buy_(.+)_(.+)/, async (ctx) => {
     const productId = ctx.match[1];
     const size = ctx.match[2];
@@ -199,11 +209,13 @@ bot.action(/buy_(.+)_(.+)/, async (ctx) => {
         await ctx.answerCbQuery("Xatolik! ❌");
     }
 });
+
 bot.action("clear_cart", async (ctx) => {
     await Cart.deleteMany({ userId: ctx.from!.id });
     await ctx.answerCbQuery("Savat tozalandi 🗑");
     await ctx.editMessageText("Savatchangiz bo'shatildi.");
 });
+
 bot.hears("📍 Filiallar", (ctx) => {
     ctx.reply(
         "🏠 <b>Bizning filiallarimiz:</b>\n\n1. Sirdaryo V., Guliston Shahar 1-mavze.\n2. Guliston sh., Bunyodkor ko'chasi.",
@@ -217,18 +229,25 @@ bot.hears("🕒 Ish vaqti", (ctx) => {
         { parse_mode: "HTML" },
     );
 });
+
 bot.hears("📞 Aloqa", (ctx) => {
     ctx.reply(
         "☎️ <b>Biz bilan bog'lanish:</b>\n\nAdmin: @sizning_admin_useringiz\nTelefon: +998 90 123 45 67",
         { parse_mode: "HTML" },
     );
 });
+
 bot.hears("🏷 Chegirmalar", (ctx) => {
     ctx.reply("🎁 Hozirda barcha kiyimlarga mavsumiy chegirmalar mavjud!");
 });
-bot.catch((err: any, ctx) =>
-    console.error(`Bot xatosi: ${ctx.updateType}`, err),
-);
-bot.launch().then(() => console.log("🤖 Bot ishlayapti..."));
+
+bot.catch((err: any, ctx) => {
+    console.error(`Bot xatosi: ${ctx.updateType}`, err);
+});
+
+bot.launch().then(() => {
+    console.log("🤖 Bot ishlayapti...");
+});
+
 process.once("SIGINT", () => bot.stop("SIGINT"));
 process.once("SIGTERM", () => bot.stop("SIGTERM"));

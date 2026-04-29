@@ -6,12 +6,13 @@ import { ClothingStyle } from "./types/index.js";
 import { Product } from "./models/product.js";
 import { Cart } from "./models/cart.js";
 
+const PORT = Number(process.env.PORT) || 3000;
+
 const server = http.createServer((req, res) => {
     res.writeHead(200, { "Content-Type": "text/plain" });
-    res.end("Bot is running safely!");
+    res.end("Bot is live!");
 });
 
-const PORT = Number(process.env.PORT) || 3000;
 server.listen(PORT, "0.0.0.0", () => {
     console.log(`Port ${PORT} tinglanmoqda...`);
 });

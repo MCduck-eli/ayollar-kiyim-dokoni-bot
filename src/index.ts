@@ -233,7 +233,7 @@ bot.hears("🕒 Ish vaqti", (ctx) => {
 
 bot.hears("📞 Aloqa", (ctx) => {
     ctx.reply(
-        "☎️ <b>Biz bilan bog'lanish:</b>\n\nAdmin: @sizning_admin_useringiz\nTelefon: +998 90 123 45 67",
+        "☎️ <b>Biz bilan bog'lanish:</b>\n\nAdmin: @papina_dochka\nTelefon: +998 90 777 77 77",
         { parse_mode: "HTML" },
     );
 });

@@ -175,17 +175,29 @@ bot.on("location", async (ctx) => {
         await bot.telegram.sendMessage(ADMIN_ID, adminMsg, {
             parse_mode: "HTML",
         });
+
         await bot.telegram.sendLocation(
             ADMIN_ID,
             location.latitude,
             location.longitude,
         );
+
+        const googleMapsLink = `https://www.google.com/maps?q=${location.latitude},${location.longitude}`;
+        await bot.telegram.sendMessage(
+            ADMIN_ID,
+            `📍 <b>Xaritadagi link:</b>\n${googleMapsLink}`,
+            {
+                parse_mode: "HTML",
+            },
+        );
+
         await Cart.deleteMany({ userId });
         await ctx.reply(
             "Tabriklaymiz! Buyurtmangiz qabul qilindi. ✅",
             mainMenu,
         );
     } catch (e) {
+        console.error("Xabar yuborishda xato:", e);
         await ctx.reply("Xatolik yuz berdi, operator bilan bog'laning.");
     }
 });

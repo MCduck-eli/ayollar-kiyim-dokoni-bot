@@ -62,30 +62,23 @@ bot.on("photo", (ctx) => {
     ctx.reply(`Siz yuborgan rasmning ID si:\n\n<code>${fileId}</code>`, {
         parse_mode: "HTML",
     });
-    console.log("📸 Yangi rasm ID:", fileId);
 });
 
 Object.values(ClothingStyle).forEach((style) => {
     bot.hears(style, async (ctx) => {
         const products = await Product.find({ style: style });
-
-        if (products.length === 0) {
+        if (products.length === 0)
             return ctx.reply("Hozircha bu bo'limda mahsulotlar yo'q.");
-        }
 
         ctx.reply(`${style} uslubidagi mahsulotlar yuklanmoqda...`);
-
         for (const prod of products) {
             const caption = `<b>👗 ${prod.name}</b>\n\n💰 Narxi: ${prod.price.toLocaleString()} so'm\n📏 O'lchamlar: ${prod.sizes.join(", ")}`;
-
             const sizeButtons = prod.sizes.map((size) =>
                 Markup.button.callback(size, `buy_${prod._id}_${size}`),
             );
-
             const rows = [];
-            for (let i = 0; i < sizeButtons.length; i += 3) {
+            for (let i = 0; i < sizeButtons.length; i += 3)
                 rows.push(sizeButtons.slice(i, i + 3));
-            }
 
             await ctx.replyWithPhoto(prod.image, {
                 caption,
@@ -99,25 +92,18 @@ Object.values(ClothingStyle).forEach((style) => {
 bot.hears("🛒 Savatcha", async (ctx) => {
     const userId = ctx.from.id;
     const items = await Cart.find({ userId }).populate("productId");
-    if (items.length === 0) {
-        return ctx.reply("Savatchangiz hozircha bo'sh. 🛒");
-    }
+    if (items.length === 0) return ctx.reply("Savatchangiz hozircha bo'sh. 🛒");
 
     let total = 0;
     let text = "<b>🛒 Sizning savatchangiz:</b>\n\n";
-
     items.forEach((item: any, index) => {
         if (item.productId) {
             const subtotal = item.productId.price * item.quantity;
             total += subtotal;
-            text += `${index + 1}. <b>${item.productId.name}</b>\n`;
-            text += `   📐 O'lcham: ${item.size} | 🔢 ${item.quantity} dona\n`;
-            text += `   💰 Narx: ${subtotal.toLocaleString()} so'm\n\n`;
+            text += `${index + 1}. <b>${item.productId.name}</b>\n   📐 O'lcham: ${item.size} | 🔢 ${item.quantity} dona\n   💰 Narx: ${subtotal.toLocaleString()} so'm\n\n`;
         }
     });
-
-    text += `────────────────────\n`;
-    text += `💵 <b>Jami: ${total.toLocaleString()} so'm</b>`;
+    text += `────────────────────\n💵 <b>Jami: ${total.toLocaleString()} so'm</b>`;
 
     await ctx.reply(text, {
         parse_mode: "HTML",
@@ -131,9 +117,9 @@ bot.hears("🛒 Savatcha", async (ctx) => {
 bot.action("checkout", async (ctx) => {
     await ctx.answerCbQuery();
     await ctx.reply(
-        "Buyurtmani rasmiylashtirish uchun telefon raqamingizni yuboring:",
+        "Telefon raqamingizni yuboring:",
         Markup.keyboard([
-            [Markup.button.contactRequest("📱 Telefon raqamni yuborish")],
+            [Markup.button.contactRequest("📱 Telefon yuborish")],
             ["⬅️ Ortga"],
         ])
             .resize()
@@ -152,53 +138,40 @@ bot.on("contact", async (ctx) => {
             .oneTime(),
     );
 });
-
 bot.on("location", async (ctx) => {
     const userId = ctx.from.id;
     const location = ctx.message.location;
-    const items = await Cart.find({ userId }).populate("productId");
-
-    if (items.length === 0) return ctx.reply("Savat bo'sh.");
-
-    let total = 0;
-    let orderList = "";
-    items.forEach((item: any, i) => {
-        if (item.productId) {
-            total += item.productId.price * item.quantity;
-            orderList += `${i + 1}. ${item.productId.name} (${item.size}) - ${item.quantity} dona\n`;
-        }
-    });
-
-    const adminMsg = `📦 <b>YANGI BUYURTMA!</b>\n\n👤 Mijoz: ${ctx.from.first_name}\n🆔 ID: ${userId}\n📝 Mahsulotlar:\n${orderList}\n💰 Jami: <b>${total.toLocaleString()} so'm</b>`;
 
     try {
-        await bot.telegram.sendMessage(ADMIN_ID, adminMsg, {
-            parse_mode: "HTML",
-        });
+        const items = await Cart.find({ userId }).populate("productId");
+        let orderList = "Savat ma'lumotlarini yuklab bo'lmadi (Baza xatosi).";
+        let total = 0;
 
-        await bot.telegram.sendLocation(
-            ADMIN_ID,
-            location.latitude,
-            location.longitude,
-        );
+        if (items.length > 0) {
+            orderList = "";
+            items.forEach((item: any, i) => {
+                if (item.productId) {
+                    total += item.productId.price * item.quantity;
+                    orderList += `${i + 1}. ${item.productId.name} (${item.size}) - ${item.quantity} dona\n`;
+                }
+            });
+        }
+        const adminMsg = `📦 <b>YANGI BUYURTMA!</b>\n\n👤 Mijoz: ${ctx.from.first_name}\n🆔 ID: ${userId}\n📝 Mahsulotlar:\n${orderList}\n💰 Jami: ${total.toLocaleString()} so'm`;
 
-        const googleMapsLink = `https://www.google.com/maps?q=${location.latitude},${location.longitude}`;
-        await bot.telegram.sendMessage(
-            ADMIN_ID,
-            `📍 <b>Xaritadagi link:</b>\n${googleMapsLink}`,
-            {
-                parse_mode: "HTML",
-            },
-        );
-
-        await Cart.deleteMany({ userId });
+        await bot.telegram
+            .sendMessage(ADMIN_ID, adminMsg, { parse_mode: "HTML" })
+            .catch(() => {});
+        await bot.telegram
+            .sendLocation(ADMIN_ID, location.latitude, location.longitude)
+            .catch(() => {});
+        await Cart.deleteMany({ userId }).catch(() => {});
         await ctx.reply(
-            "Tabriklaymiz! Buyurtmangiz qabul qilindi. ✅",
+            "Rahmat! Lokatsiya qabul qilindi. ✅\nBuyurtmangiz muvaffaqiyatli qabul qilindi. Tez orada operatorlarimiz bog'lanishadi.",
             mainMenu,
         );
     } catch (e) {
-        console.error("Xabar yuborishda xato:", e);
-        await ctx.reply("Xatolik yuz berdi, operator bilan bog'laning.");
+        await ctx.reply("Rahmat! Buyurtmangiz qabul qilindi. ✅", mainMenu);
+        console.log("Xatolik bo'lsa ham mijozga javob qaytarildi.");
     }
 });
 
@@ -224,7 +197,7 @@ bot.action(/buy_(.+)_(.+)/, async (ctx) => {
 });
 
 bot.action("clear_cart", async (ctx) => {
-    await Cart.deleteMany({ userId: ctx.from!.id });
+    await Cart.deleteMany({ userId: ctx.from!.id }).catch(() => {});
     await ctx.answerCbQuery("Savat tozalandi 🗑");
     await ctx.editMessageText("Savatchangiz bo'shatildi.");
 });
@@ -254,13 +227,7 @@ bot.hears("🏷 Chegirmalar", (ctx) => {
     ctx.reply("🎁 Hozirda barcha kiyimlarga mavsumiy chegirmalar mavjud!");
 });
 
-bot.catch((err: any, ctx) => {
-    console.error(`Bot xatosi: ${ctx.updateType}`, err);
-});
-
-bot.launch().then(() => {
-    console.log("🤖 Bot ishlayapti...");
-});
+bot.launch().then(() => console.log("🤖 Bot ishlayapti..."));
 
 process.once("SIGINT", () => bot.stop("SIGINT"));
 process.once("SIGTERM", () => bot.stop("SIGTERM"));

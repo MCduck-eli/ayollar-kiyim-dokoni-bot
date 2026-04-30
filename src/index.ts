@@ -82,8 +82,8 @@ Object.values(ClothingStyle).forEach((style) => {
 
 const classicSubStyles = [
     "🤵 Kostyum-shim",
-    "👔 Klassik ko'ylak",
-    "👗 Ayollar klassikasi",
+    "Oq Klassik ko'ylak",
+    "👗 Silk Dress",
 ];
 classicSubStyles.forEach((subStyle) => {
     bot.hears(subStyle, async (ctx) => {

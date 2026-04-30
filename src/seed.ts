@@ -18,12 +18,12 @@ const seed = async () => {
                 subStyle: "🤵 Kostyum-shim",
                 price: 1200000,
                 sizes: ["48", "50", "52"],
-                image: "AgACAgIAAxkBAAIClWnyOT6fmnhL6U21eto9ckvml04aAALoFGsbEa-YS6nCPZhdm416AQADAgADeQADOwQ",
+                image: "AgACAgIAAxkBAAICm2nyOT5r0O0uiQgKqu-HFOcY_FF-AALuFGsbEa-YS6BTxvHVf9lQAQADAgADeAADOwQ",
             },
             {
                 name: "Oq Klassik Ko'ylak",
                 style: ClothingStyle.CLASSIC,
-                subStyle: "👔 Klassik ko'ylak",
+                subStyle: "Oq Klassik ko'ylak",
                 price: 250000,
                 sizes: ["S", "M", "L"],
                 image: "AgACAgIAAxkBAAIClWnyOT6fmnhL6U21eto9ckvml04aAALoFGsbEa-YS6nCPZhdm416AQADAgADeQADOwQ",
@@ -31,10 +31,10 @@ const seed = async () => {
             {
                 name: "Klassik Silk Dress",
                 style: ClothingStyle.CLASSIC,
-                subStyle: "👗 Ayollar klassikasi",
+                subStyle: "👗 Silk Dress",
                 price: 550000,
                 sizes: ["S", "M"],
-                image: "AgACAgIAAxkBAAIClWnyOT6fmnhL6U21eto9ckvml04aAALoFGsbEa-YS6nCPZhdm416AQADAgADeQADOwQ",
+                image: "AgACAgIAAxkBAAICnWnyOT6HcgcFy01B6Uk1SxbS0EThAALxFGsbEa-YS6uX1VVgUNoFAQADAgADeQADOwQ",
             },
             {
                 name: "Casual Streetwear Pants",

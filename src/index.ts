@@ -24,8 +24,6 @@ mongoose
     .then(() => console.log("🔥 MongoDB muvaffaqiyatli ulandi"))
     .catch((err) => console.error("❌ MongoDB xatosi:", err));
 
-// --- MENYULAR ---
-
 const mainMenu = Markup.keyboard([
     ["🛍 Katalog", "🛒 Savatcha"],
     ["📍 Filiallar", "📞 Aloqa"],
@@ -47,14 +45,6 @@ const classicSubMenu = Markup.keyboard([
     ["⬅️ Ortga"],
 ]).resize();
 
-const casualSubMenu = Markup.keyboard([
-    ["👕 Futbolkalar", "👖 Shimlar"],
-    ["🧥 Kurtkalar"],
-    ["⬅️ Ortga"],
-]).resize();
-
-// --- START & BACK ---
-
 bot.start((ctx) => {
     ctx.reply(
         `Assalomu alaykum ${ctx.from.first_name}! 👋\nOnline do'konimizga xush kelibsiz.`,
@@ -70,20 +60,27 @@ bot.hears("🛍 Katalog", (ctx) => {
     ctx.reply("Kiyim uslubini tanlang:", catalogStylesMenu);
 });
 
-// --- SUB-MENU HANDLERS ---
-
 bot.hears("CLASSIC", (ctx) => {
     ctx.reply("Klassik kiyimlar turini tanlang:", classicSubMenu);
 });
 
-bot.hears("CASUAL", (ctx) => {
-    ctx.reply("Casual kiyimlar turini tanlang:", casualSubMenu);
+bot.hears("CASUAL", async (ctx) => {
+    const casualProducts = await Product.find({ style: ClothingStyle.CASUAL });
+
+    if (casualProducts.length === 0) {
+        return ctx.reply("Hozircha casual mahsulotlar yo'q.");
+    }
+
+    const productButtons = casualProducts.map((p) => [p.name]);
+    productButtons.push(["⬅️ Ortga"]);
+
+    await ctx.reply(
+        "Casual mahsulotlarimizdan birini tanlang:",
+        Markup.keyboard(productButtons).resize(),
+    );
 });
 
-// --- DYNAMIC HANDLERS (STILLAR UCHUN) ---
-
 Object.values(ClothingStyle).forEach((style) => {
-    // Agar stil menyuli bo'lsa, uni o'tkazib yuboramiz
     if (style === "CLASSIC" || style === "CASUAL") return;
 
     bot.hears(style, async (ctx) => {
@@ -92,24 +89,32 @@ Object.values(ClothingStyle).forEach((style) => {
     });
 });
 
-// Ichki turlarni (subStyles) eshitish
-const allSubStyles = [
+const classicSubStyles = [
     "🤵 Kostyum-shim",
     "Oq Klassik ko'ylak",
-    "👗 Silk Dress", // Classic turlari
-    "👕 Futbolkalar",
-    "👖 Shimlar",
-    "🧥 Kurtkalar", // Casual turlari
+    "👗 Silk Dress",
 ];
 
-allSubStyles.forEach((subStyle) => {
+classicSubStyles.forEach((subStyle) => {
     bot.hears(subStyle, async (ctx) => {
         const products = await Product.find({ subStyle: subStyle });
         await showProducts(ctx, products, subStyle);
     });
 });
 
-// --- PHOTO HANDLER (ADMIN UCHUN ID OLISH) ---
+bot.on("text", async (ctx, next) => {
+    const text = ctx.message.text;
+    const product = await Product.findOne({
+        name: text,
+        style: ClothingStyle.CASUAL,
+    });
+
+    if (product) {
+        await showProducts(ctx, [product], product.name);
+    } else {
+        return next();
+    }
+});
 
 bot.on("photo", async (ctx) => {
     const fileId = ctx.message.photo[ctx.message.photo.length - 1].file_id;
@@ -117,8 +122,6 @@ bot.on("photo", async (ctx) => {
         parse_mode: "HTML",
     });
 });
-
-// --- PRODUCT DISPLAY ---
 
 async function showProducts(ctx: any, products: any[], title: string) {
     if (products.length === 0)
@@ -141,8 +144,6 @@ async function showProducts(ctx: any, products: any[], title: string) {
         });
     }
 }
-
-// --- SAVATCHA VA BUYURTMA ---
 
 bot.hears("🛒 Savatcha", async (ctx) => {
     const userId = ctx.from.id;
@@ -253,8 +254,6 @@ bot.action("clear_cart", async (ctx) => {
     await ctx.answerCbQuery("Savat tozalandi 🗑");
     await ctx.editMessageText("Savatchangiz bo'shatildi.");
 });
-
-// --- INFO HANDLERS ---
 
 bot.hears("📍 Filiallar", (ctx) =>
     ctx.reply(

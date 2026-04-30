@@ -13,8 +13,25 @@ const seed = async () => {
 
         const testProducts = [
             {
-                name: "Classic Silk Dress",
+                name: "Erkaklar Klassik Kostyumi",
                 style: ClothingStyle.CLASSIC,
+                subStyle: "🤵 Kostyum-shim",
+                price: 1200000,
+                sizes: ["48", "50", "52"],
+                image: "AgACAgIAAxkBAAIClWnyOT6fmnhL6U21eto9ckvml04aAALoFGsbEa-YS6nCPZhdm416AQADAgADeQADOwQ",
+            },
+            {
+                name: "Oq Klassik Ko'ylak",
+                style: ClothingStyle.CLASSIC,
+                subStyle: "👔 Klassik ko'ylak",
+                price: 250000,
+                sizes: ["S", "M", "L"],
+                image: "AgACAgIAAxkBAAIClWnyOT6fmnhL6U21eto9ckvml04aAALoFGsbEa-YS6nCPZhdm416AQADAgADeQADOwQ",
+            },
+            {
+                name: "Klassik Silk Dress",
+                style: ClothingStyle.CLASSIC,
+                subStyle: "👗 Ayollar klassikasi",
                 price: 550000,
                 sizes: ["S", "M"],
                 image: "AgACAgIAAxkBAAIClWnyOT6fmnhL6U21eto9ckvml04aAALoFGsbEa-YS6nCPZhdm416AQADAgADeQADOwQ",
@@ -60,7 +77,6 @@ const seed = async () => {
         console.log(
             `✅ Bazaga ${testProducts.length} ta mahsulot muvaffaqiyatli qo'shildi!`,
         );
-
         process.exit(0);
     } catch (err) {
         console.error("❌ Xatolik:", err);

@@ -240,5 +240,4 @@ bot.hears("📞 Aloqa", (ctx) => {
 bot.hears("🏷 Chegirmalar", (ctx) => {
     ctx.reply("🎁 Mavsumiy chegirmalar mavjud!");
 });
-
 bot.launch().then(() => console.log("🤖 Bot ishlayapti..."));

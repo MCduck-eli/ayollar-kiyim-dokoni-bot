@@ -37,11 +37,25 @@ const seed = async () => {
                 image: "AgACAgIAAxkBAAICnWnyOT6HcgcFy01B6Uk1SxbS0EThAALxFGsbEa-YS6uX1VVgUNoFAQADAgADeQADOwQ",
             },
             {
-                name: "Casual Streetwear Pants",
+                name: "Oq Puff-sleeved Bluzka",
                 style: ClothingStyle.CASUAL,
-                price: 280000,
+                price: 320000,
+                sizes: ["S", "M", "L"],
+                image: "AgACAgIAAxkBAAIDxWny-yyV6RiQ5x0MGe4HGd2XiMhyAALaFmsbEa-YS6_D8jHl6HFAAQADAgADeQADOwQ",
+            },
+            {
+                name: "Jigarrang Casual Kostyum-shim (Nimcha bilan)",
+                style: ClothingStyle.CASUAL,
+                price: 750000,
+                sizes: ["M", "L", "XL"],
+                image: "AgACAgIAAxkBAAID3Wny-1PzW5YaWIakXGMvIhxQuPE1AALdFmsbEa-YS2hq7dQsAyPCAQADAgADeQADOwQ",
+            },
+            {
+                name: "Chiziqli Casual To'plam",
+                style: ClothingStyle.CASUAL,
+                price: 480000,
                 sizes: ["S", "M", "L", "XL"],
-                image: "AgACAgIAAxkBAAICl2nyOT7pJ3p5xy9v45XaLyEw7CIAA-oUaxsRr5hLxaSYcvcTdaABAAMCAAN5AAM7BA",
+                image: "AgACAgIAAxkBAAID4Gny-4XZrmd4o1oEnG2mw6bJLpc3AALgFmsbEa-YS_nKTR7zSGHyAQADAgADeQADOwQ",
             },
             {
                 name: "Sporty Windbreaker",

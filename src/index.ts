@@ -51,6 +51,7 @@ bot.start((ctx) => {
         mainMenu,
     );
 });
+
 bot.hears("⬅️ Ortga", (ctx) => {
     ctx.reply("Asosiy menyuga qaytdingiz:", mainMenu);
 });

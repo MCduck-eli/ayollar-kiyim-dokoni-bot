@@ -65,11 +65,11 @@ const seed = async () => {
                 image: "AgACAgIAAxkBAAIEGWnzAnggcIejBKyyuRZqSYXuWZRaAAL6FmsbEa-YSxVYV6aTee2gAQADAgADeQADOwQ",
             },
             {
-                name: "Jigarrang Top va Kulrang Shim",
+                name: "USA Oversize Sport To'plam",
                 style: ClothingStyle.SPORTY,
                 price: 280000,
                 sizes: ["S", "M"],
-                image: "AgACAgIAAxkBAAIEG2nzAp-4gNHWv39iJjNIhQkYXFQ0AAL9FmsbEa-YS8sNicv5nmFdAQADAgADeQADOwQ",
+                image: "AgACAgIAAxkBAAIENmnzA-hac0ac2ii9LBEMm6RaiWVVAAIGF2sbEa-YS0T8e5GfDoVZAQADAgADeQADOwQ",
             },
             {
                 name: "Adidas Retro Sport Kostyum",

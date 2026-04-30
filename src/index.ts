@@ -23,7 +23,6 @@ mongoose
     .connect(process.env.MONGO_URI!)
     .then(() => console.log("🔥 MongoDB muvaffaqiyatli ulandi"))
     .catch((err) => console.error("❌ MongoDB xatosi:", err));
-
 const mainMenu = Markup.keyboard([
     ["🛍 Katalog", "🛒 Savatcha"],
     ["📍 Filiallar", "📞 Aloqa"],
@@ -44,7 +43,6 @@ const classicSubMenu = Markup.keyboard([
     ["👗 Silk Dress"],
     ["⬅️ Ortga"],
 ]).resize();
-
 bot.start((ctx) => {
     ctx.reply(
         `Assalomu alaykum ${ctx.from.first_name}! 👋\nOnline do'konimizga xush kelibsiz.`,
@@ -60,29 +58,44 @@ bot.hears("🛍 Katalog", (ctx) => {
     ctx.reply("Kiyim uslubini tanlang:", catalogStylesMenu);
 });
 
-bot.hears("CLASSIC", (ctx) => {
+bot.hears(ClothingStyle.CLASSIC, (ctx) => {
     ctx.reply("Klassik kiyimlar turini tanlang:", classicSubMenu);
 });
+bot.hears(
+    [
+        ClothingStyle.CASUAL,
+        ClothingStyle.SPORTY,
+        ClothingStyle.ELEGANT,
+        ClothingStyle.KPOP,
+        ClothingStyle.ETHNIC,
+    ],
+    async (ctx) => {
+        const style = ctx.message.text as ClothingStyle;
+        const products = await Product.find({ style: style });
 
-bot.hears(["CASUAL", "SPORTY"], async (ctx) => {
-    const style = ctx.message.text as ClothingStyle;
-    const products = await Product.find({ style: style });
+        if (products.length === 0) {
+            return ctx.reply(`Hozircha ${style} bo'limida mahsulotlar yo'q.`);
+        }
 
-    if (products.length === 0) {
-        return ctx.reply(`Hozircha ${style} bo'limida mahsulotlar yo'q.`);
-    }
+        const productButtons = products.map((p) => [p.name]);
+        productButtons.push(["⬅️ Ortga"]);
 
-    const productButtons = products.map((p) => [p.name]);
-    productButtons.push(["⬅️ Ortga"]);
-
-    await ctx.reply(
-        `${style} mahsulotlarimizdan birini tanlang:`,
-        Markup.keyboard(productButtons).resize(),
-    );
-});
-
+        await ctx.reply(
+            `${style} mahsulotlarimizdan birini tanlang:`,
+            Markup.keyboard(productButtons).resize(),
+        );
+    },
+);
 Object.values(ClothingStyle).forEach((style) => {
-    if (style === "CLASSIC" || style === "CASUAL" || style === "SPORTY") return;
+    if (
+        style === ClothingStyle.CLASSIC ||
+        style === ClothingStyle.CASUAL ||
+        style === ClothingStyle.SPORTY ||
+        style === ClothingStyle.ELEGANT ||
+        style === ClothingStyle.KPOP ||
+        style === ClothingStyle.ETHNIC
+    )
+        return;
 
     bot.hears(style, async (ctx) => {
         const products = await Product.find({ style: style });
@@ -102,12 +115,19 @@ classicSubStyles.forEach((subStyle) => {
         await showProducts(ctx, products, subStyle);
     });
 });
-
 bot.on("text", async (ctx, next) => {
     const text = ctx.message.text;
     const product = await Product.findOne({
         name: text,
-        style: { $in: [ClothingStyle.CASUAL, ClothingStyle.SPORTY] },
+        style: {
+            $in: [
+                ClothingStyle.CASUAL,
+                ClothingStyle.SPORTY,
+                ClothingStyle.ELEGANT,
+                ClothingStyle.KPOP,
+                ClothingStyle.ETHNIC,
+            ],
+        },
     });
 
     if (product) {
@@ -134,6 +154,7 @@ async function showProducts(ctx: any, products: any[], title: string) {
         const sizeButtons = prod.sizes.map((size: string) =>
             Markup.button.callback(size, `buy_${prod._id}_${size}`),
         );
+
         const rows = [];
         for (let i = 0; i < sizeButtons.length; i += 3)
             rows.push(sizeButtons.slice(i, i + 3));
@@ -145,7 +166,6 @@ async function showProducts(ctx: any, products: any[], title: string) {
         });
     }
 }
-
 bot.hears("🛒 Savatcha", async (ctx) => {
     const userId = ctx.from.id;
     const items = await Cart.find({ userId }).populate("productId");
@@ -211,6 +231,7 @@ bot.on("location", async (ctx) => {
         });
 
         const adminMsg = `📦 <b>YANGI BUYURTMA!</b>\n\n👤 Mijoz: ${ctx.from.first_name}\n📝 Mahsulotlar:\n${orderList}\n💰 Jami: ${total.toLocaleString()} so'm`;
+
         await bot.telegram.sendMessage(ADMIN_ID, adminMsg, {
             parse_mode: "HTML",
         });
@@ -219,11 +240,12 @@ bot.on("location", async (ctx) => {
             location.latitude,
             location.longitude,
         );
+
         await Cart.deleteMany({ userId });
         await ctx.reply("Rahmat! Buyurtmangiz qabul qilindi. ✅", mainMenu);
     } catch (e) {
         await ctx.reply(
-            "Xatolik yuz berdi, lekin buyurtma saqlanishi mumkin. ⚠️",
+            "Xatolik yuz berdi. Iltimos, qaytadan urunib ko'ring. ⚠️",
             mainMenu,
         );
     }
@@ -255,7 +277,6 @@ bot.action("clear_cart", async (ctx) => {
     await ctx.answerCbQuery("Savat tozalandi 🗑");
     await ctx.editMessageText("Savatchangiz bo'shatildi.");
 });
-
 bot.hears("📍 Filiallar", (ctx) =>
     ctx.reply(
         "🏠 <b>Bizning filiallarimiz:</b>\n\n1. Sirdaryo V., Guliston Shahar 1-mavze.",

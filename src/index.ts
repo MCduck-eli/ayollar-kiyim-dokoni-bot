@@ -61,6 +61,16 @@ bot.hears("🛍 Katalog", (ctx) => {
 bot.hears("CLASSIC", (ctx) => {
     ctx.reply("Klassik kiyimlar turini tanlang:", classicSubMenu);
 });
+
+bot.on("photo", async (ctx) => {
+    const fileId = ctx.message.photo[ctx.message.photo.length - 1].file_id;
+    console.log("📸 Rasm ID-si:", fileId);
+    await ctx.reply(
+        `Rasm muvaffaqiyatli qabul qilindi! \n\nUshbu ID-ni seed.ts faylida ishlating:`,
+    );
+    await ctx.reply(`<code>${fileId}</code>`, { parse_mode: "HTML" });
+});
+
 Object.values(ClothingStyle).forEach((style) => {
     if (style === "CLASSIC") return;
 

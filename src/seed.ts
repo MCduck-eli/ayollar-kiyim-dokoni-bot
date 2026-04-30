@@ -13,7 +13,7 @@ const seed = async () => {
 
         const testProducts = [
             {
-                name: "Erkaklar Klassik Kostyumi",
+                name: "Ayollar Klassik Kostyumi",
                 style: ClothingStyle.CLASSIC,
                 subStyle: "🤵 Kostyum-shim",
                 price: 1200000,

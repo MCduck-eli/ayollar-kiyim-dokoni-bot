@@ -24,6 +24,8 @@ mongoose
     .then(() => console.log("🔥 MongoDB muvaffaqiyatli ulandi"))
     .catch((err) => console.error("❌ MongoDB xatosi:", err));
 
+// --- MENYULAR ---
+
 const mainMenu = Markup.keyboard([
     ["🛍 Katalog", "🛒 Savatcha"],
     ["📍 Filiallar", "📞 Aloqa"],
@@ -45,6 +47,14 @@ const classicSubMenu = Markup.keyboard([
     ["⬅️ Ortga"],
 ]).resize();
 
+const casualSubMenu = Markup.keyboard([
+    ["👕 Futbolkalar", "👖 Shimlar"],
+    ["🧥 Kurtkalar"],
+    ["⬅️ Ortga"],
+]).resize();
+
+// --- START & BACK ---
+
 bot.start((ctx) => {
     ctx.reply(
         `Assalomu alaykum ${ctx.from.first_name}! 👋\nOnline do'konimizga xush kelibsiz.`,
@@ -60,21 +70,21 @@ bot.hears("🛍 Katalog", (ctx) => {
     ctx.reply("Kiyim uslubini tanlang:", catalogStylesMenu);
 });
 
+// --- SUB-MENU HANDLERS ---
+
 bot.hears("CLASSIC", (ctx) => {
     ctx.reply("Klassik kiyimlar turini tanlang:", classicSubMenu);
 });
 
-bot.on("photo", async (ctx) => {
-    const fileId = ctx.message.photo[ctx.message.photo.length - 1].file_id;
-    console.log("📸 Rasm ID-si:", fileId);
-    await ctx.reply(
-        `Rasm muvaffaqiyatli qabul qilindi! \n\nUshbu ID-ni seed.ts faylida ishlating:`,
-    );
-    await ctx.reply(`<code>${fileId}</code>`, { parse_mode: "HTML" });
+bot.hears("CASUAL", (ctx) => {
+    ctx.reply("Casual kiyimlar turini tanlang:", casualSubMenu);
 });
 
+// --- DYNAMIC HANDLERS (STILLAR UCHUN) ---
+
 Object.values(ClothingStyle).forEach((style) => {
-    if (style === "CLASSIC") return;
+    // Agar stil menyuli bo'lsa, uni o'tkazib yuboramiz
+    if (style === "CLASSIC" || style === "CASUAL") return;
 
     bot.hears(style, async (ctx) => {
         const products = await Product.find({ style: style });
@@ -82,18 +92,33 @@ Object.values(ClothingStyle).forEach((style) => {
     });
 });
 
-const classicSubStyles = [
+// Ichki turlarni (subStyles) eshitish
+const allSubStyles = [
     "🤵 Kostyum-shim",
     "Oq Klassik ko'ylak",
-    "👗 Silk Dress",
+    "👗 Silk Dress", // Classic turlari
+    "👕 Futbolkalar",
+    "👖 Shimlar",
+    "🧥 Kurtkalar", // Casual turlari
 ];
 
-classicSubStyles.forEach((subStyle) => {
+allSubStyles.forEach((subStyle) => {
     bot.hears(subStyle, async (ctx) => {
         const products = await Product.find({ subStyle: subStyle });
         await showProducts(ctx, products, subStyle);
     });
 });
+
+// --- PHOTO HANDLER (ADMIN UCHUN ID OLISH) ---
+
+bot.on("photo", async (ctx) => {
+    const fileId = ctx.message.photo[ctx.message.photo.length - 1].file_id;
+    await ctx.reply(`📸 Rasm ID-si: \n<code>${fileId}</code>`, {
+        parse_mode: "HTML",
+    });
+});
+
+// --- PRODUCT DISPLAY ---
 
 async function showProducts(ctx: any, products: any[], title: string) {
     if (products.length === 0)
@@ -116,6 +141,8 @@ async function showProducts(ctx: any, products: any[], title: string) {
         });
     }
 }
+
+// --- SAVATCHA VA BUYURTMA ---
 
 bot.hears("🛒 Savatcha", async (ctx) => {
     const userId = ctx.from.id;
@@ -177,21 +204,26 @@ bot.on("location", async (ctx) => {
         items.forEach((item: any, i) => {
             if (item.productId) {
                 total += item.productId.price * item.quantity;
-                orderList += `${i + 1}. ${item.productId.name} (${item.size}) - ${item.quantity} dona\n`;
+                orderList += `${i + 1}. ${item.productId.name} (${item.size})\n`;
             }
         });
 
-        const adminMsg = `📦 <b>YANGI BUYURTMA!</b>\n\n👤 Mijoz: ${ctx.from.first_name}\n🆔 ID: ${userId}\n📝 Mahsulotlar:\n${orderList}\n💰 Jami: ${total.toLocaleString()} so'm`;
-        await bot.telegram
-            .sendMessage(ADMIN_ID, adminMsg, { parse_mode: "HTML" })
-            .catch(() => {});
-        await bot.telegram
-            .sendLocation(ADMIN_ID, location.latitude, location.longitude)
-            .catch(() => {});
-        await Cart.deleteMany({ userId }).catch(() => {});
+        const adminMsg = `📦 <b>YANGI BUYURTMA!</b>\n\n👤 Mijoz: ${ctx.from.first_name}\n📝 Mahsulotlar:\n${orderList}\n💰 Jami: ${total.toLocaleString()} so'm`;
+        await bot.telegram.sendMessage(ADMIN_ID, adminMsg, {
+            parse_mode: "HTML",
+        });
+        await bot.telegram.sendLocation(
+            ADMIN_ID,
+            location.latitude,
+            location.longitude,
+        );
+        await Cart.deleteMany({ userId });
         await ctx.reply("Rahmat! Buyurtmangiz qabul qilindi. ✅", mainMenu);
     } catch (e) {
-        await ctx.reply("Rahmat! Buyurtmangiz qabul qilindi. ✅", mainMenu);
+        await ctx.reply(
+            "Xatolik yuz berdi, lekin buyurtma saqlanishi mumkin. ⚠️",
+            mainMenu,
+        );
     }
 });
 
@@ -217,27 +249,27 @@ bot.action(/buy_(.+)_(.+)/, async (ctx) => {
 });
 
 bot.action("clear_cart", async (ctx) => {
-    await Cart.deleteMany({ userId: ctx.from!.id }).catch(() => {});
+    await Cart.deleteMany({ userId: ctx.from!.id });
     await ctx.answerCbQuery("Savat tozalandi 🗑");
     await ctx.editMessageText("Savatchangiz bo'shatildi.");
 });
 
-bot.hears("📍 Filiallar", (ctx) => {
+// --- INFO HANDLERS ---
+
+bot.hears("📍 Filiallar", (ctx) =>
     ctx.reply(
         "🏠 <b>Bizning filiallarimiz:</b>\n\n1. Sirdaryo V., Guliston Shahar 1-mavze.",
         { parse_mode: "HTML" },
-    );
-});
+    ),
+);
+bot.hears("🕒 Ish vaqti", (ctx) =>
+    ctx.reply("⏰ <b>Ish tartibi:</b> 09:00 - 20:00", { parse_mode: "HTML" }),
+);
+bot.hears("📞 Aloqa", (ctx) =>
+    ctx.reply("☎️ <b>Admin:</b> @papina_dochka", { parse_mode: "HTML" }),
+);
+bot.hears("🏷 Chegirmalar", (ctx) =>
+    ctx.reply("🎁 Mavsumiy chegirmalar mavjud!"),
+);
 
-bot.hears("🕒 Ish vaqti", (ctx) => {
-    ctx.reply("⏰ <b>Ish tartibi:</b> 09:00 - 20:00", { parse_mode: "HTML" });
-});
-
-bot.hears("📞 Aloqa", (ctx) => {
-    ctx.reply("☎️ <b>Admin:</b> @papina_dochka", { parse_mode: "HTML" });
-});
-
-bot.hears("🏷 Chegirmalar", (ctx) => {
-    ctx.reply("🎁 Mavsumiy chegirmalar mavjud!");
-});
 bot.launch().then(() => console.log("🤖 Bot ishlayapti..."));

@@ -39,6 +39,7 @@ const seed = async () => {
             {
                 name: "Oq Puff-sleeved Bluzka",
                 style: ClothingStyle.CASUAL,
+                subStyle: "👕 Futbolkalar",
                 price: 320000,
                 sizes: ["S", "M", "L"],
                 image: "AgACAgIAAxkBAAIDxWny-yyV6RiQ5x0MGe4HGd2XiMhyAALaFmsbEa-YS6_D8jHl6HFAAQADAgADeQADOwQ",
@@ -46,13 +47,15 @@ const seed = async () => {
             {
                 name: "Jigarrang Casual Kostyum-shim (Nimcha bilan)",
                 style: ClothingStyle.CASUAL,
+                subStyle: "👖 Shimlar",
                 price: 750000,
                 sizes: ["M", "L", "XL"],
-                image: "AgACAgIAAxkBAAID3Wny-1PzW5YaWIakXGMvIhxQuPE1AALdFmsbEa-YS2hq7dQsAyPCAQADAgADeQADOwQ",
+                image: "AgACAgIAAgkBAAID3Wny-1PzW5YaWIakXGMvIhxQuPE1AALdFmsbEa-YS2hq7dQsAyPCAQADAgADeQADOwQ",
             },
             {
                 name: "Chiziqli Casual To'plam",
                 style: ClothingStyle.CASUAL,
+                subStyle: "🧥 Kurtkalar",
                 price: 480000,
                 sizes: ["S", "M", "L", "XL"],
                 image: "AgACAgIAAxkBAAID4Gny-4XZrmd4o1oEnG2mw6bJLpc3AALgFmsbEa-YS_nKTR7zSGHyAQADAgADeQADOwQ",

@@ -38,9 +38,10 @@ const catalogStylesMenu = Markup.keyboard([
     }, []),
     ["⬅️ Ortga"],
 ]).resize();
+
 const classicSubMenu = Markup.keyboard([
-    ["🤵 Kostyum-shim", "👔 Klassik ko'ylak"],
-    ["👗 Ayollar klassikasi"],
+    ["🤵 Kostyum-shim", "Oq Klassik ko'ylak"],
+    ["👗 Silk Dress"],
     ["⬅️ Ortga"],
 ]).resize();
 
@@ -58,6 +59,7 @@ bot.hears("⬅️ Ortga", (ctx) => {
 bot.hears("🛍 Katalog", (ctx) => {
     ctx.reply("Kiyim uslubini tanlang:", catalogStylesMenu);
 });
+
 bot.hears("CLASSIC", (ctx) => {
     ctx.reply("Klassik kiyimlar turini tanlang:", classicSubMenu);
 });
@@ -85,12 +87,14 @@ const classicSubStyles = [
     "Oq Klassik ko'ylak",
     "👗 Silk Dress",
 ];
+
 classicSubStyles.forEach((subStyle) => {
     bot.hears(subStyle, async (ctx) => {
         const products = await Product.find({ subStyle: subStyle });
         await showProducts(ctx, products, subStyle);
     });
 });
+
 async function showProducts(ctx: any, products: any[], title: string) {
     if (products.length === 0)
         return ctx.reply("Hozircha bu bo'limda mahsulotlar yo'q.");
@@ -112,6 +116,7 @@ async function showProducts(ctx: any, products: any[], title: string) {
         });
     }
 }
+
 bot.hears("🛒 Savatcha", async (ctx) => {
     const userId = ctx.from.id;
     const items = await Cart.find({ userId }).populate("productId");
@@ -216,18 +221,22 @@ bot.action("clear_cart", async (ctx) => {
     await ctx.answerCbQuery("Savat tozalandi 🗑");
     await ctx.editMessageText("Savatchangiz bo'shatildi.");
 });
+
 bot.hears("📍 Filiallar", (ctx) => {
     ctx.reply(
         "🏠 <b>Bizning filiallarimiz:</b>\n\n1. Sirdaryo V., Guliston Shahar 1-mavze.",
         { parse_mode: "HTML" },
     );
 });
+
 bot.hears("🕒 Ish vaqti", (ctx) => {
     ctx.reply("⏰ <b>Ish tartibi:</b> 09:00 - 20:00", { parse_mode: "HTML" });
 });
+
 bot.hears("📞 Aloqa", (ctx) => {
     ctx.reply("☎️ <b>Admin:</b> @papina_dochka", { parse_mode: "HTML" });
 });
+
 bot.hears("🏷 Chegirmalar", (ctx) => {
     ctx.reply("🎁 Mavsumiy chegirmalar mavjud!");
 });

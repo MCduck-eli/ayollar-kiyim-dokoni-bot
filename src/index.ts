@@ -51,7 +51,6 @@ bot.start((ctx) => {
         mainMenu,
     );
 });
-
 bot.hears("⬅️ Ortga", (ctx) => {
     ctx.reply("Asosiy menyuga qaytdingiz:", mainMenu);
 });
@@ -64,24 +63,25 @@ bot.hears("CLASSIC", (ctx) => {
     ctx.reply("Klassik kiyimlar turini tanlang:", classicSubMenu);
 });
 
-bot.hears("CASUAL", async (ctx) => {
-    const casualProducts = await Product.find({ style: ClothingStyle.CASUAL });
+bot.hears(["CASUAL", "SPORTY"], async (ctx) => {
+    const style = ctx.message.text as ClothingStyle;
+    const products = await Product.find({ style: style });
 
-    if (casualProducts.length === 0) {
-        return ctx.reply("Hozircha casual mahsulotlar yo'q.");
+    if (products.length === 0) {
+        return ctx.reply(`Hozircha ${style} bo'limida mahsulotlar yo'q.`);
     }
 
-    const productButtons = casualProducts.map((p) => [p.name]);
+    const productButtons = products.map((p) => [p.name]);
     productButtons.push(["⬅️ Ortga"]);
 
     await ctx.reply(
-        "Casual mahsulotlarimizdan birini tanlang:",
+        `${style} mahsulotlarimizdan birini tanlang:`,
         Markup.keyboard(productButtons).resize(),
     );
 });
 
 Object.values(ClothingStyle).forEach((style) => {
-    if (style === "CLASSIC" || style === "CASUAL") return;
+    if (style === "CLASSIC" || style === "CASUAL" || style === "SPORTY") return;
 
     bot.hears(style, async (ctx) => {
         const products = await Product.find({ style: style });
@@ -106,7 +106,7 @@ bot.on("text", async (ctx, next) => {
     const text = ctx.message.text;
     const product = await Product.findOne({
         name: text,
-        style: ClothingStyle.CASUAL,
+        style: { $in: [ClothingStyle.CASUAL, ClothingStyle.SPORTY] },
     });
 
     if (product) {

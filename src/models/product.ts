@@ -13,6 +13,7 @@ export const Product = model<IProductDocument>(
             enum: Object.values(ClothingStyle),
             required: true,
         },
+        subStyle: { type: String, required: false },
         price: { type: Number, required: true },
         sizes: [{ type: String, required: true }],
         image: { type: String, required: true },

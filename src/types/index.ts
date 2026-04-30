@@ -13,4 +13,5 @@ export interface IProduct {
     price: number;
     sizes: string[];
     image: string;
+    subStyle?: string;
 }
